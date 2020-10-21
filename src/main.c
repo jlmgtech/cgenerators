@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "./include/Generator.h"
-#define GeneratorActive 
+#define GeneratorActive(g) (g->done == false)
 // http://albertnetymk.github.io/2014/12/05/context/
 
 void once(Generator* gen) {
