@@ -11,6 +11,8 @@ void GeneratorReturn(Generator* this) {
 Generator* GeneratorInit(Generator* this, void (*function)(Generator*)) {
     this->function = function;
     this->iterations = 0;
+    this->message = NULL;
+    this->value = NULL;
     this->done = false;
 
     // completion context
@@ -39,12 +41,14 @@ void GeneratorFree(Generator* this) {
     free(this);
 }
 
-void GeneratorYield(Generator* this, void* value) {
+void* GeneratorYield(Generator* this, void* value) {
     this->value = value;
     swapcontext(&this->callee_ctx, &this->caller_ctx);
+    return this->message;
 }
 
-void* GeneratorNext(Generator* this) {
+void* GeneratorNext(Generator* this, void* message) {
+    this->message = message;
     if (!this->done) {
         this->iterations++;
         if (swapcontext(&this->caller_ctx, &this->callee_ctx)) {

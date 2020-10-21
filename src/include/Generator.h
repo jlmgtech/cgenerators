@@ -14,6 +14,7 @@ typedef struct Generator {
     void (*function)(struct Generator*);
     unsigned iterations;
     void* value;
+    void* message;
     bool done;
 } Generator;
 
@@ -21,7 +22,7 @@ void GeneratorReturn(Generator* this);
 Generator* GeneratorInit(Generator* this, void (*function)(Generator*));
 Generator* GeneratorMake(void (*function)(Generator*));
 void GeneratorFree(Generator* this);
-void GeneratorYield(Generator* this, void* value);
-void* GeneratorNext(Generator* this);
+void* GeneratorYield(Generator* this, void* value);
+void* GeneratorNext(Generator* this, void* message);
 
 #endif

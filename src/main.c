@@ -14,13 +14,14 @@ void count(Generator* gen) {
 
     Generator* once_gen = GeneratorMake(once);
     while (!once_gen->done) {
-        GeneratorNext(once_gen);
+        GeneratorNext(once_gen, NULL);
     }
     GeneratorFree(once_gen);
 
     for (int i = 0; i < 3; i++) {
         printf("i: %d\n", i);
-        GeneratorYield(gen, (void*)&i);
+        char* msg = (char*)GeneratorYield(gen, (void*)&i);
+        printf("received %s\n", msg);
     }
     printf("count done\n");
 }
@@ -32,7 +33,7 @@ int main() {
     int i;
     while (GeneratorActive(gcount)) {
         printf("calling generator next\n");
-        i = *((int*)GeneratorNext(gcount));
+        i = *((int*)GeneratorNext(gcount, (void*)"hi there"));
     }
     GeneratorFree(gcount);
 
