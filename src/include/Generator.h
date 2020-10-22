@@ -21,8 +21,7 @@ typedef struct Generator {
 } Generator;
 
 void GeneratorReturn(Generator* this, void* value);
-Generator* GeneratorInit(Generator* this, void (*function)(Generator*));
-Generator* GeneratorMake(void (*function)(Generator*), int argc, ...);
+Generator* GeneratorMake(void (*function)(Generator*));
 void GeneratorFree(Generator* this);
 void* GeneratorYield(Generator* this, void* value);
 void* GeneratorNext(Generator* this, void* message);

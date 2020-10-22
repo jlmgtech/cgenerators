@@ -15,7 +15,10 @@ void GeneratorReturnError() {
     exit(1);
 }
 
-Generator* GeneratorInit(Generator* this, void (*function)(Generator*)) {
+Generator* GeneratorMake(void (*function)(Generator*)) {
+
+    Generator* this = malloc(sizeof(Generator));
+
     this->function = function;
     this->iterations = 0;
     this->message = NULL;
@@ -27,21 +30,16 @@ Generator* GeneratorInit(Generator* this, void (*function)(Generator*)) {
     this->return_ctx.uc_stack.ss_sp = this->closeStack;
     this->return_ctx.uc_stack.ss_size = sizeof(this->closeStack);
     this->return_ctx.uc_link = &this->caller_ctx;
-    makecontext(&this->return_ctx, (void (*)(void))GeneratorReturnError, 0);
+    //makecontext(&this->return_ctx, (void (*)(void))GeneratorReturnError, 0);
+    makecontext(&this->return_ctx, (void (*)(void))GeneratorReturn, 2, this, NULL);
 
     // activation context
     getcontext(&this->callee_ctx);
     this->callee_ctx.uc_stack.ss_sp = this->openStack;
     this->callee_ctx.uc_stack.ss_size = sizeof(this->openStack);
-    this->callee_ctx.uc_link = &this->return_ctx;
-    //this->return_ctx.uc_link = &this->caller_ctx;
+    this->callee_ctx.uc_link = &this->return_ctx; // &this->caller_ctx;
     makecontext(&this->callee_ctx, (void (*)(void))this->function, 1, this);
 
-}
-
-Generator* GeneratorMake(void (*function)(Generator*), int argc, ...) {
-    Generator* this = malloc(sizeof(Generator));
-    GeneratorInit(this, function);
     return this;
 }
 
@@ -58,12 +56,10 @@ void* GeneratorYield(Generator* this, void* value) {
 
 void* GeneratorNext(Generator* this, void* message) {
     this->message = message;
-    swapcontext(&this->caller_ctx, &this->callee_ctx);
-    void* value = this->value;
-    if (this->done) {
-        this->value = NULL;
-        this->message = NULL;
+    if (!this->done) {
+        swapcontext(&this->caller_ctx, &this->callee_ctx);
+        return this->value;
     }
-    return value;
+    return NULL;
 }
 

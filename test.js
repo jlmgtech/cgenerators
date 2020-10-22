@@ -13,6 +13,7 @@ function* RecvRange() {
     for (let i = 1; i < 6; i++) {
         yield i;
     }
+    return 9;
 }
 
 function* SendRecvRange() {
@@ -52,14 +53,18 @@ function test2() {
     let numbers = RecvRange();
     console.log("should count 1 to 5");
     let value;
-    for (;;) {
-        const it = numbers.next();
-        if (it.done) {
-            break;
-        }
-        value = it.value;
-        process.stdout.write(value + " ");
+    for (const value of numbers) {
+        console.log(value);
     }
+    //for (;;) {
+    //    const it = numbers.next();
+    //    if (it.done) {
+    //        break;
+    //    }
+    //    value = it.value;
+    //    //process.stdout.write(value + " ");
+    //    console.log(value);
+    //}
     process.stdout.write("\n");
     return value === 5;
 }
