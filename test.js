@@ -18,15 +18,15 @@ function* RecvRange() {
 
 function* SendRecvRange() {
     let value = 0;
+    let tmp = 0;
     for (let i = 0; i < 5; i++) {
-        value = yield (i + value);
+        tmp = i + value;
+        value = yield tmp;
     }
 }
 
 function* YieldFrom(gen) {
-    console.log("YieldFrom start");
     yield* gen;
-    console.log("YieldFrom end");
 }
 
 
@@ -38,12 +38,16 @@ function test0() {
 
 function test1() {
     console.log("testing single value echo");
+    let tmp = null;
     let success = true;
     let echo = EchoOnce();
-    // the first SEND will be ignored
-    success = success && echo.next(1234).value === 1;
-    // the second one is yielded as sent
-    success = success && echo.next(5678).value === 5678;
+
+    tmp = echo.next(1234).value;
+    success = tmp === 1;
+
+    tmp = echo.next(5678).value;
+    success = success && tmp === 5678;
+
     return success;
 }
 
@@ -51,21 +55,14 @@ function test1() {
 function test2() {
     console.log("basic value iteration");
     let numbers = RecvRange();
-    console.log("should count 1 to 5");
     let value;
-    for (const value of numbers) {
-        console.log(value);
+    for (;;) {
+        const it = numbers.next();
+        if (it.done) {
+            break;
+        }
+        value = it.value;
     }
-    //for (;;) {
-    //    const it = numbers.next();
-    //    if (it.done) {
-    //        break;
-    //    }
-    //    value = it.value;
-    //    //process.stdout.write(value + " ");
-    //    console.log(value);
-    //}
-    process.stdout.write("\n");
     return value === 5;
 }
 

@@ -47,18 +47,27 @@ void GeneratorFree(Generator* this) {
     free(this);
 }
 
+void GeneratorYieldFrom(Generator* this, void (*function)(Generator*)) {
+    GeneratorYield(this, NULL);
+    function(this);
+}
+
 void* GeneratorYield(Generator* this, void* value) {
     this->value = value;
     swapcontext(&this->callee_ctx, &this->caller_ctx);
     void* message = this->message;
+    this->value = NULL;
+    this->message = NULL;
     return message;
 }
 
 void* GeneratorNext(Generator* this, void* message) {
-    this->message = message;
     if (!this->done) {
+        this->message = message;
         swapcontext(&this->caller_ctx, &this->callee_ctx);
-        return this->value;
+        void* value = this->value;
+        this->value = NULL;
+        return value;
     }
     return NULL;
 }

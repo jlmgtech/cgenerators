@@ -16,11 +16,6 @@ void count(Generator* gen) {
 }
 
 
-void* GeneratorYieldFrom(Generator* this, Generator* that) {
-
-}
-
-
 void passthru(Generator* gen) {
     //printf("passthru start\n");
 
@@ -41,14 +36,14 @@ void passthru(Generator* gen) {
 
 void Gen1337(Generator* gen) {
     static int val = 1337;
-    printf("Gen1337 called\n");
     GeneratorReturn(gen, (void*)&val);
 }
 
 void EchoOnce(Generator* gen) {
-    static int value = 1;
-    value = *((int*)GeneratorYield(gen, (void*)&value));
-    GeneratorReturn(gen, &value);
+    int a = 1;
+    int b = 0;
+    b = *((int*)GeneratorYield(gen, (void*)&a));
+    GeneratorReturn(gen, &b);
 }
 
 void RecvRange(Generator* gen) {
@@ -59,9 +54,9 @@ void RecvRange(Generator* gen) {
 }
 
 void SendRecvRange(Generator* gen) {
-    static int value = 0;
-    static int i = 0;
-    static int tmp = 0;
+    int i = 0;
+    int tmp = 0;
+    int value = 0;
     for (i = 0; i < 5; i++) {
         tmp = i + value;
         value = *(int*)GeneratorYield(gen, (void*)&tmp);
@@ -69,10 +64,8 @@ void SendRecvRange(Generator* gen) {
 }
 
 void YieldFrom(Generator* gen) {
-    Generator* other = (Generator*)GeneratorYield(gen, NULL);
-    printf("YieldFrom start\n");
+    void (*other)(Generator*) = (void(*)(Generator*))GeneratorYield(gen, NULL);
     GeneratorYieldFrom(gen, other);
-    printf("YieldFrom end\n");
 }
 
 bool test0() {
@@ -105,7 +98,6 @@ bool test1() {
 
 bool test2() {
     printf("basic value iteration\n");
-    printf("should count 1 to 5\n");
 
     Generator* numbers = GeneratorMake(RecvRange);
     int value;
@@ -118,7 +110,6 @@ bool test2() {
             value = *itvalue;
         }
     }
-    printf("\ndone\n");
     return value == 5;
 }
 
@@ -139,7 +130,9 @@ bool test3() {
 bool test4() {
     printf("basic yield from\n");
     int val;
-    Generator* gen = GeneratorMake(RecvRange);
+    Generator* gen = GeneratorMake((void (*)(Generator*))YieldFrom);
+    GeneratorNext(gen, NULL);
+    GeneratorNext(gen, RecvRange); // send RecvRange as "argument"
     for (;;) {
         int* value = (int*)GeneratorNext(gen, NULL);
         if (gen->done) {
@@ -156,7 +149,6 @@ bool test5() {
     printf("send/receive yield from\n");
     Generator* gen = GeneratorMake((void (*)(Generator*))YieldFrom);
     GeneratorNext(gen, NULL);
-    //GeneratorNext(gen, srgen);
     GeneratorNext(gen, SendRecvRange);
 
     int value = 0;
@@ -213,6 +205,7 @@ int main() {
         printf("PASS\n\n");
     }
 
+    printf("SUCCESS - ALL TESTS PASSED\n");
     return 0;
 }
     //Generator* passthru_g = GeneratorMake(passthru, 0);

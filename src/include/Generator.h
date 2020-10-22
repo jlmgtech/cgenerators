@@ -23,6 +23,7 @@ typedef struct Generator {
 void GeneratorReturn(Generator* this, void* value);
 Generator* GeneratorMake(void (*function)(Generator*));
 void GeneratorFree(Generator* this);
+void GeneratorYieldFrom(Generator* this, void (*function)(Generator*));
 void* GeneratorYield(Generator* this, void* value);
 void* GeneratorNext(Generator* this, void* message);
 
