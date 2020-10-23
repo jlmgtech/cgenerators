@@ -41,9 +41,17 @@ installheaders: src/include/Generator.h
 	cp $< /usr/local/include
 
 # TODO - probably should run an installer script instead
-
 install: installheaders installstatic installshared
-	###### TODO - install headers, static, and shared libs ######
+	ldconfig
+	# 						  #
+	# successfully installed! #
+	# 						  #
+
+uninstall:
+	rm /usr/local/lib/libgenc.a
+	rm /usr/local/lib/libgenc.so
+	rm /usr/local/include/Generator.h
+	ldconfig
 
 clean:
 	rm -vf dist/*
