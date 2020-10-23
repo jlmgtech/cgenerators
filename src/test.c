@@ -20,7 +20,7 @@ void count(Generator* gen) {
 void load_images(Generator* gen) {
     struct timespec req;
     req.tv_sec = 0;
-    req.tv_nsec = 50000000;
+    req.tv_nsec = 10000000;
     for (int i = 0; i < 20; i++) {
         printf("%d images loaded     \r", i);
         fflush(stdout);
@@ -35,7 +35,7 @@ void load_images(Generator* gen) {
 void load_records(Generator* gen) {
     struct timespec req;
     req.tv_sec = 0;
-    req.tv_nsec = 100000000;
+    req.tv_nsec = 50000000;
     for (int i = 0; i < 15; i++) {
         printf("\r%d records loaded    ", i);
         fflush(stdout);
