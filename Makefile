@@ -1,16 +1,16 @@
-test: dist/main
+test: dist/test
 	$<
 
-dist/main: dist/main.o dist/Generator.o
+dist/test: dist/test.o dist/Generator.o
 	gcc -o $@ $^
 
-dist/main.o: src/main.c
+dist/test.o: src/test.c
 	gcc -c -o $@ $^
 
 dist/Generator.o: src/lib/Generator.c
 	gcc -c -o $@ $^
 
 clean:
-	rm -vf dist/main
+	rm -vf dist/test
 	rm -vf dist/*.o
 

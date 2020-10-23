@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <time.h>
 #include "./include/Generator.h"
-#define GeneratorActive(g) (g->done == false)
 // http://albertnetymk.github.io/2014/12/05/context/
-
 
 void count(Generator* gen) {
     printf("count start\n");
@@ -16,23 +15,35 @@ void count(Generator* gen) {
 }
 
 
-void passthru(Generator* gen) {
-    //printf("passthru start\n");
+/// GENERATORS FOR TESTS //
 
-    //static int something = 123;
-    //static int something_else = 456;
-    //char* g = (char*)GeneratorYield(gen, (void*)&something);
-    //printf("received %c\n", *g);
-
-    //// yield from
-    //Generator* gcount = GeneratorMake(count);
-    //GeneratorYieldFrom(gen, gcount);
-    //GeneratorFree(gcount);
-
-    //printf("passthru end\n");
-    //GeneratorReturn(gen, &something_else);
+void load_images(Generator* gen) {
+    struct timespec req;
+    req.tv_sec = 0;
+    req.tv_nsec = 50000000;
+    for (int i = 0; i < 20; i++) {
+        printf("%d images loaded     \r", i);
+        fflush(stdout);
+        GeneratorYield(gen, NULL);
+        nanosleep(&req, NULL);
+        GeneratorYield(gen, NULL);
+        GeneratorYield(gen, NULL);
+        nanosleep(&req, NULL);
+    }
 }
 
+void load_records(Generator* gen) {
+    struct timespec req;
+    req.tv_sec = 0;
+    req.tv_nsec = 100000000;
+    for (int i = 0; i < 15; i++) {
+        printf("\r%d records loaded    ", i);
+        fflush(stdout);
+        GeneratorYield(gen, NULL);
+        nanosleep(&req, NULL);
+        nanosleep(&req, NULL);
+    }
+}
 
 void Gen1337(Generator* gen) {
     static int val = 1337;
@@ -67,6 +78,8 @@ void YieldFrom(Generator* gen) {
     void (*other)(Generator*) = (void(*)(Generator*))GeneratorYield(gen, NULL);
     GeneratorYieldFrom(gen, other);
 }
+
+/// TEST FUNCTIONS ///
 
 bool test0() {
     printf("testing single value receive\n");
@@ -144,7 +157,6 @@ bool test4() {
     return val == 5;
 }
 
-// basic yield from
 bool test5() {
     printf("send/receive yield from\n");
     Generator* gen = GeneratorMake((void (*)(Generator*))YieldFrom);
@@ -160,6 +172,35 @@ bool test5() {
         value = *itval;
     }
     return value == 9;
+}
+
+bool test6() {
+    printf("scheduler example\n");
+
+    int num_tasks = 2;
+    Generator* tasks[2];
+    tasks[0] = GeneratorMake(load_images);
+    tasks[1] = GeneratorMake(load_records);
+    int tasks_done = 0;
+    int i;
+    for (i = 0; ; i++) {
+        const int id = i & 1;
+        Generator* task = tasks[id];
+        if (task != NULL) {
+            if (task->done) {
+                GeneratorFree(task);
+                tasks[id] = NULL;
+                tasks_done++;
+                if (tasks_done == num_tasks) {
+                    break;
+                }
+            } else {
+                GeneratorNext(task, NULL);
+            }
+        }
+    }
+    printf("\n");
+    return i == 122;
 }
 
 int bombout(char* msg) {
@@ -205,20 +246,12 @@ int main() {
         printf("PASS\n\n");
     }
 
+    if (!test6()) {
+        return bombout("FAILED TEST 6");
+    } else {
+        printf("PASS\n\n");
+    }
+
     printf("SUCCESS - ALL TESTS PASSED\n");
     return 0;
 }
-    //Generator* passthru_g = GeneratorMake(passthru, 0);
-    //while (GeneratorActive(passthru_g)) {
-    //    int* tmp = (int*)GeneratorNext(passthru_g, (void*)&c);
-    //    if (tmp == NULL) {
-    //        printf("when I sent %c, count responded NULL\n", c);
-    //    } else {
-    //        printf("tmp: %p, ", tmp);
-    //        i = *tmp;
-    //        printf("when I sent %c, count responded %d\n", c, i);
-    //    }
-    //    c++;
-    //}
-    //GeneratorFree(passthru_g);
-
